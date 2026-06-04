@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A complete guide to AWS Cloud Networking  VPCs, Subnets, Security Groups, VPC Peering, and Transit Gateway explained with diagrams.">
+<title>Cloud Networking from the Ground Up</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#18181b;--ink2:#52525b;--ink3:#a1a1aa;
+  --page:#fafaf9;--surface:#f4f4f5;
+  --red:#dc2626;--orange:#ea580c;--green:#16a34a;
+  --blue:#2563eb;--teal:#0d9488;--border:rgba(0,0,0,0.08);
+  --body:'Fraunces',Georgia,serif;--ui:'Manrope',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.85;padding:0;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding:60px 28px 100px}
+.hero-tag{font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.hero-tag::before{content:'';display:inline-block;width:24px;height:2px;background:var(--blue)}
+h1{font-family:var(--ui);font-size:44px;font-weight:800;line-height:1.1;letter-spacing:-0.03em;color:var(--ink);margin-bottom:20px}
+h1 span{color:var(--blue)}
+.hero-sub{font-family:var(--body);font-style:italic;font-size:20px;color:var(--ink2);line-height:1.6;margin-bottom:36px;max-width:600px}
+.byline{display:flex;align-items:center;gap:14px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:52px}
+.av{width:42px;height:42px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-weight:800;font-size:15px;color:white;flex-shrink:0}
+.by-info{font-family:var(--ui);font-size:13px}
+.by-name{font-weight:700;color:var(--ink)}
+.by-date{color:var(--ink3);font-size:12px;margin-top:1px}
+.read-tag{margin-left:auto;font-family:var(--ui);font-size:12px;font-weight:600;color:var(--ink2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px}
+.toc{background:var(--surface);border-radius:14px;padding:24px 28px;margin-bottom:52px}
+.toc-head{font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px}
+.toc-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
+.toc-list li{font-family:var(--ui);font-size:14px;color:var(--blue);display:flex;align-items:center;gap:6px}
+.toc-list li::before{content:attr(data-n);font-size:11px;font-weight:700;color:var(--ink3);min-width:16px}
+p{margin-bottom:24px;color:var(--ink2)}
+strong{color:var(--ink);font-weight:600}
+em{font-style:italic}
+.section{margin-top:72px}
+.section-num{font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+h2{font-family:var(--ui);font-size:30px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);margin-bottom:18px;line-height:1.2}
+h3{font-family:var(--ui);font-size:18px;font-weight:700;color:var(--ink);margin:32px 0 12px}
+.callout{border-radius:10px;padding:18px 22px;margin:28px 0;font-family:var(--ui);font-size:14px;line-height:1.65;color:var(--ink2)}
+.callout.note{background:#eff6ff;border-left:3px solid var(--blue)}
+.callout.warn{background:#fff7ed;border-left:3px solid var(--orange)}
+.callout.good{background:#f0fdf4;border-left:3px solid var(--green)}
+.callout.bad{background:#fef2f2;border-left:3px solid var(--red)}
+.callout .label{font-weight:700;color:var(--ink);margin-bottom:5px;display:block;font-size:13px;letter-spacing:0.02em;text-transform:uppercase}
+.code{background:#18181b;border-radius:10px;padding:20px 24px;margin:24px 0;font-family:var(--mono);font-size:13px;line-height:1.9;overflow-x:auto}
+.code .tag{display:block;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#71717a;margin-bottom:12px}
+.g{color:#4ade80}.b{color:#60a5fa}.o{color:#fb923c}.r{color:#f87171}.gr{color:#71717a}
+.dw{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 20px 16px;margin:32px 0;overflow-x:auto}
+.dc{font-family:var(--ui);font-size:12px;color:var(--ink3);text-align:center;margin-top:14px;font-style:italic;line-height:1.5}
+.analogy{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.ana-card{background:var(--surface);border-radius:10px;padding:18px 20px;font-family:var(--ui);font-size:14px;line-height:1.6}
+.ana-card .head{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+.ana-card.real .head{color:var(--blue)}
+.ana-card.aws .head{color:var(--teal)}
+.ana-card .item{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;color:var(--ink2)}
+.ana-card .item::before{content:'→';color:var(--ink3);flex-shrink:0}
+.ctable{width:100%;border-collapse:collapse;margin:28px 0;font-family:var(--ui);font-size:13.5px}
+.ctable th{background:var(--ink);color:#fafaf9;padding:11px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:0.04em}
+.ctable th:first-child{border-radius:8px 0 0 0}.ctable th:last-child{border-radius:0 8px 0 0}
+.ctable td{padding:11px 16px;border-bottom:1px solid var(--border);color:var(--ink2);vertical-align:top}
+.ctable tr:nth-child(even) td{background:var(--surface)}
+.ctable .concept{font-weight:600;color:var(--ink)}
+.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-family:var(--mono)}
+.pill.aws{background:#eff6ff;color:var(--blue)}
+.pill.azure{background:#fff7ed;color:var(--orange)}
+.pill.gcp{background:#f0fdf4;color:var(--green)}
+.summary{background:var(--ink);color:#fafaf9;border-radius:14px;padding:36px;margin:52px 0 0}
+.summary h3{font-family:var(--ui);font-size:22px;color:#fafaf9;margin:0 0 24px;letter-spacing:-0.01em}
+.summary-row{display:flex;gap:14px;margin-bottom:18px;font-family:var(--ui);font-size:14px;color:#a1a1aa;line-height:1.6}
+.summary-row strong{color:#fafaf9}
+.snum{background:var(--blue);color:white;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.footer-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:52px;padding-top:32px;border-top:1px solid var(--border)}
+.ftag{font-family:var(--ui);font-size:12px;font-weight:500;color:var(--ink2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px}
+hr{border:none;border-top:1px solid var(--border);margin:56px 0}
+.dw svg{display:block;width:100%}
+@media(max-width:600px){
+  h1{font-size:28px}
+  .toc-list{grid-template-columns:1fr}
+  .analogy{grid-template-columns:1fr}
+  .wrap{padding:32px 18px 60px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+
+<h1>Cloud Networking<br><span>from the Ground Up</span></h1>
+<p class="hero-sub">Everything you need to understand VPCs, Subnets, Security Groups, VPC Peering, and Transit Gateway explained with diagrams, analogies, and real architecture.</p>
+
+
+
+<div class="toc">
+  <div class="toc-head">What you will learn</div>
+  <ul class="toc-list">
+    <li data-n="01"><a href="#section-01">What is a VPC?</a></li>
+    <li data-n="02"><a href="#section-02">Subnets explained</a></li>
+    <li data-n="03"><a href="#section-03">Internet Gateway &amp; Routes</a></li>
+    <li data-n="04"><a href="#section-04">Security Groups</a></li>
+    <li data-n="05"><a href="#section-05">Production architecture</a></li>
+    <li data-n="06"><a href="#section-06">VPC Peering</a></li>
+    <li data-n="07"><a href="#section-07">Transit Gateway</a></li>
+    <li data-n="08"><a href="#section-08">AWS vs Azure vs GCP</a></li>
+  </ul>
+</div>
+
+<p>When I started learning cloud infrastructure I kept hitting the same wall  there were too many new terms all at once and nobody explained <em>why</em> things are structured the way they are. This article is what I wish existed when I started.</p>
+<p>We will go from zero  a blank AWS account  to a fully secured, production-grade architecture. Every concept builds on the last. By the end the whole picture will click.</p>
+
+<!-- SECTION 1 -->
+<div class="section">
+  <div class="section-num">Section 01</div>
+  <h2>What is a VPC?</h2>
+  <p>Before your application can exist in the cloud, you need a network for it to live in. That network is a <strong>VPC  Virtual Private Cloud</strong>.</p>
+  <p>Think of AWS as a massive city with thousands of buildings. Your VPC is <em>your private building</em> inside that city. You decide who can enter, how floors are arranged, and which rooms talk to each other. Other buildings cannot see inside yours.</p>
+  <div class="analogy">
+    <div class="ana-card real">
+      <div class="head">Real world analogy</div>
+      <div class="item">City = AWS</div>
+      <div class="item">Your building = Your VPC</div>
+      <div class="item">Building IP range = CIDR block</div>
+      <div class="item">Other buildings = Other customers</div>
+    </div>
+    <div class="ana-card aws">
+      <div class="head">AWS terms</div>
+      <div class="item">AWS Region = us-east-1</div>
+      <div class="item">VPC CIDR = 10.0.0.0/16</div>
+      <div class="item">65,536 private IPs available</div>
+      <div class="item">Fully isolated by default</div>
+    </div>
+  </div>
+  <div class="dw">
+    <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="660" height="190" rx="16" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="7 4"/>
+      <text x="28" y="32" font-size="10" font-weight="700" letter-spacing="0.1em" fill="#a1a1aa" font-family="Manrope,sans-serif">AWS CLOUD  us-east-1</text>
+      <rect x="30" y="50" width="100" height="130" rx="8" fill="white" stroke="#d4d4d8" stroke-width="0.5" opacity="0.6"/>
+      <text x="80" y="115" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">Other</text>
+      <text x="80" y="130" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">customer</text>
+      <rect x="550" y="50" width="100" height="130" rx="8" fill="white" stroke="#d4d4d8" stroke-width="0.5" opacity="0.6"/>
+      <text x="600" y="115" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">Other</text>
+      <text x="600" y="130" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">customer</text>
+      <rect x="155" y="44" width="370" height="142" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="175" y="70" font-size="13" font-weight="700" fill="#1d4ed8" font-family="Manrope,sans-serif">Your VPC</text>
+      <text x="175" y="90" font-size="12" fill="#3b82f6" font-family="Manrope,sans-serif">CIDR: 10.0.0.0/16    65,536 private IP addresses</text>
+      <rect x="175" y="102" width="150" height="28" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="250" y="120" font-size="12" fill="#2563eb" text-anchor="middle" font-family="Manrope,sans-serif">Fully isolated</text>
+      <rect x="347" y="102" width="150" height="28" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="422" y="120" font-size="12" fill="#2563eb" text-anchor="middle" font-family="Manrope,sans-serif">You control everything</text>
+      <rect x="175" y="144" width="150" height="28" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="250" y="162" font-size="12" fill="#2563eb" text-anchor="middle" font-family="Manrope,sans-serif">Custom IP ranges</text>
+      <rect x="347" y="144" width="150" height="28" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="422" y="162" font-size="12" fill="#2563eb" text-anchor="middle" font-family="Manrope,sans-serif">Private by default</text>
+    </svg>
+    <p class="dc">Fig 1  Your VPC is a fully isolated private network. Other AWS customers cannot see or access it.</p>
+  </div>
+  <div class="callout warn">
+    <span class="label">Warning  Default VPC</span>
+    AWS gives you a Default VPC with everything public. Never use it in production. Always create a custom VPC where you control the networking from scratch.
+  </div>
+  <div class="code">
+    <span class="tag">CIDR cheat sheet</span>
+    <span class="b">10.0.0.0/16</span>  <span class="gr">--  65,536 IPs   typical VPC size</span>
+<span class="b">10.0.1.0/24</span>  <span class="gr">--     256 IPs   typical subnet size</span>
+<span class="b">10.0.1.5/32</span>  <span class="gr">--       1 IP    one specific address</span>
+
+<span class="gr">Rule: smaller /number = MORE IPs</span>
+<span class="gr">      bigger  /number = FEWER IPs</span></div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section">
+  <div class="section-num">Section 02</div>
+  <h2>Subnets  Dividing your network into layers</h2>
+  <p>Your VPC is one big IP range  but you do not put everything in one place. You divide it into <strong>subnets</strong>: smaller IP ranges for different purposes.</p>
+  <p>Think of subnets as <em>floors inside your building</em>. The reception floor is open to visitors. The work floor is for employees only. The server room is the most restricted.</p>
+  <div class="dw">
+    <svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="660" height="286" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+      <text x="30" y="34" font-size="12" font-weight="700" fill="#1d4ed8" font-family="Manrope,sans-serif">VPC  10.0.0.0/16</text>
+      <rect x="28" y="48" width="190" height="234" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="123" y="70" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Public subnet</text>
+      <text x="123" y="86" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">10.0.1.0/24 · 256 IPs</text>
+      <rect x="46" y="100" width="154" height="46" rx="7" fill="white" stroke="#bbf7d0" stroke-width="1"/>
+      <text x="123" y="119" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Nginx</text>
+      <text x="123" y="136" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">Reverse proxy · 10.0.1.10</text>
+      <rect x="46" y="158" width="154" height="46" rx="7" fill="white" stroke="#bbf7d0" stroke-width="1"/>
+      <text x="123" y="177" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Load Balancer</text>
+      <text x="123" y="194" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">Internet-facing</text>
+      <rect x="46" y="242" width="154" height="28" rx="5" fill="#dcfce7" stroke="#bbf7d0" stroke-width="1"/>
+      <text x="123" y="260" font-size="12" font-weight="600" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Has internet access ✓</text>
+      <rect x="245" y="48" width="190" height="234" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="340" y="70" font-size="12" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Private subnet</text>
+      <text x="340" y="86" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">10.0.2.0/24 · 256 IPs</text>
+      <rect x="263" y="100" width="154" height="46" rx="7" fill="white" stroke="#fed7aa" stroke-width="1"/>
+      <text x="340" y="119" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Frontend</text>
+      <text x="340" y="136" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Next.js · port 3000</text>
+      <rect x="263" y="158" width="154" height="46" rx="7" fill="white" stroke="#fed7aa" stroke-width="1"/>
+      <text x="340" y="177" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Backend</text>
+      <text x="340" y="194" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Node.js · port 8000</text>
+      <rect x="263" y="242" width="154" height="28" rx="5" fill="#ffedd5" stroke="#fed7aa" stroke-width="1"/>
+      <text x="340" y="260" font-size="12" font-weight="600" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">No internet access ✗</text>
+      <rect x="462" y="48" width="190" height="234" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="557" y="70" font-size="12" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">DB subnet</text>
+      <text x="557" y="86" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.0.3.0/24 · 256 IPs</text>
+      <rect x="480" y="100" width="154" height="46" rx="7" fill="white" stroke="#fecaca" stroke-width="1"/>
+      <text x="557" y="119" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">PostgreSQL</text>
+      <text x="557" y="136" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">Primary · port 5432</text>
+      <rect x="480" y="158" width="154" height="46" rx="7" fill="white" stroke="#fecaca" stroke-width="1"/>
+      <text x="557" y="177" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">Read Replica</text>
+      <text x="557" y="194" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">Failover · port 5432</text>
+      <rect x="480" y="242" width="154" height="28" rx="5" fill="#fee2e2" stroke="#fecaca" stroke-width="1"/>
+      <text x="557" y="260" font-size="12" font-weight="600" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">No internet access ✗</text>
+    </svg>
+    <p class="dc">Fig 2  Three subnet tiers. Each resource lives in the subnet that matches its security requirement.</p>
+  </div>
+  <div class="callout note">
+    <span class="label">Key insight</span>
+    What makes a subnet public or private is NOT a toggle in AWS. It is determined by whether its <strong>Route Table</strong> has a route pointing to an Internet Gateway  covered in the next section.
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section">
+  <div class="section-num">Section 03</div>
+  <h2>Internet Gateway &amp; Route Tables</h2>
+  <p>An <strong>Internet Gateway (IGW)</strong> is the main door of your VPC  the connection between your private network and the public internet. Without it, nothing inside your VPC can reach the internet.</p>
+  <p>A <strong>Route Table</strong> is like a signboard. It tells every packet of traffic: "if you are trying to reach this destination, go in that direction." Every subnet gets a route table attached to it.</p>
+  <div class="dw">
+    <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="16" y="116" width="96" height="48" rx="8" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1"/>
+      <text x="64" y="136" font-size="12" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Internet</text>
+      <text x="64" y="153" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">0.0.0.0/0</text>
+      <line x1="112" y1="140" x2="156" y2="140" stroke="#a1a1aa" stroke-width="1.5" marker-end="url(#a3)"/>
+      <rect x="158" y="110" width="118" height="60" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="217" y="133" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Internet</text>
+      <text x="217" y="150" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Gateway</text>
+      <path d="M276 132 L360 86" fill="none" stroke="#16a34a" stroke-width="1.5" marker-end="url(#a3)"/>
+      <text x="318" y="102" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">allowed ✓</text>
+      <path d="M276 152 L360 196" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a3)"/>
+      <text x="318" y="192" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">blocked ✗</text>
+      <rect x="362" y="50" width="148" height="86" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="436" y="74" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Public subnet</text>
+      <text x="436" y="92" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">10.0.1.0/24</text>
+      <text x="436" y="110" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">Nginx lives here</text>
+      <text x="436" y="126" font-size="10" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Internet accessible ✓</text>
+      <rect x="362" y="162" width="148" height="86" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="436" y="186" font-size="12" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">Private subnet</text>
+      <text x="436" y="204" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.0.2.0/24</text>
+      <text x="436" y="222" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">Backend lives here</text>
+      <text x="436" y="238" font-size="10" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">Internet blocked ✗</text>
+      <rect x="532" y="50" width="136" height="86" rx="8" fill="#f4f4f5" stroke="#d4d4d8" stroke-width="1"/>
+      <text x="600" y="72" font-size="11" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Public route table</text>
+      <text x="600" y="90" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16 → local</text>
+      <text x="600" y="107" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">0.0.0.0/0 → IGW</text>
+      <text x="600" y="124" font-size="10" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">↑ makes it PUBLIC</text>
+      <rect x="532" y="162" width="136" height="86" rx="8" fill="#f4f4f5" stroke="#d4d4d8" stroke-width="1"/>
+      <text x="600" y="184" font-size="11" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Private route table</text>
+      <text x="600" y="202" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16 → local</text>
+      <text x="600" y="219" font-size="11" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">no internet route</text>
+      <text x="600" y="236" font-size="10" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">↑ makes it PRIVATE</text>
+    </svg>
+    <p class="dc">Fig 3  The route table entry "0.0.0.0/0 → IGW" is the one thing that makes a subnet public.</p>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section">
+  <div class="section-num">Section 04</div>
+  <h2>Security Groups  The bouncer at every door</h2>
+  <p>Private subnets block the internet  but what about traffic <em>inside</em> your VPC? Any resource in the same VPC can potentially reach any other resource. That is where <strong>Security Groups</strong> come in.</p>
+  <p>A Security Group is a firewall attached directly to a resource  EC2, RDS, Lambda. It controls exactly which traffic can come IN and go OUT on which ports. They work as a <strong>whitelist</strong>: everything is denied by default, you only add what you want to allow.</p>
+  <div class="callout bad">
+    <span class="label">Common mistake</span>
+    "My database is in a private subnet so it is safe." Not quite. Private subnets block internet traffic. But your Frontend EC2 in the same VPC can still reach your database unless a Security Group blocks it. Both layers are always needed.
+  </div>
+  <div class="dw">
+    <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="10" y="148" width="88" height="44" rx="7" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1"/>
+      <text x="54" y="167" font-size="11" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Internet</text>
+      <text x="54" y="182" font-size="10" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">0.0.0.0/0</text>
+      <rect x="128" y="110" width="136" height="120" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="196" y="132" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Nginx</text>
+      <text x="196" y="149" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">public subnet · 10.0.1.10</text>
+      <rect x="144" y="160" width="104" height="22" rx="4" fill="#dcfce7" stroke="#bbf7d0" stroke-width="0.5"/>
+      <text x="196" y="175" font-size="11" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">IN: 80, 443 ✓</text>
+      <rect x="144" y="188" width="104" height="22" rx="4" fill="#dcfce7" stroke="#bbf7d0" stroke-width="0.5"/>
+      <text x="196" y="203" font-size="11" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">OUT: all ✓</text>
+      <line x1="98" y1="170" x2="126" y2="170" stroke="#16a34a" stroke-width="1.5" marker-end="url(#a4)"/>
+      <text x="112" y="163" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">80/443</text>
+      <rect x="304" y="54" width="140" height="116" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="374" y="76" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Frontend</text>
+      <text x="374" y="93" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">private subnet · port 3000</text>
+      <rect x="320" y="104" width="108" height="22" rx="4" fill="#ffedd5" stroke="#fed7aa" stroke-width="0.5"/>
+      <text x="374" y="119" font-size="11" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">IN: 3000 from Nginx ✓</text>
+      <rect x="320" y="132" width="108" height="22" rx="4" fill="#fee2e2" stroke="#fecaca" stroke-width="0.5"/>
+      <text x="374" y="147" font-size="11" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">IN: internet ✗</text>
+      <rect x="304" y="200" width="140" height="116" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="374" y="222" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Backend</text>
+      <text x="374" y="239" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">private subnet · port 8000</text>
+      <rect x="320" y="250" width="108" height="22" rx="4" fill="#ffedd5" stroke="#fed7aa" stroke-width="0.5"/>
+      <text x="374" y="265" font-size="11" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">IN: 8000 from Nginx ✓</text>
+      <rect x="320" y="278" width="108" height="22" rx="4" fill="#fee2e2" stroke="#fecaca" stroke-width="0.5"/>
+      <text x="374" y="293" font-size="11" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">IN: internet ✗</text>
+      <rect x="490" y="160" width="140" height="116" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="560" y="182" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">Database</text>
+      <text x="560" y="199" font-size="10" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">db subnet · port 5432</text>
+      <rect x="506" y="210" width="108" height="22" rx="4" fill="#fee2e2" stroke="#fecaca" stroke-width="0.5"/>
+      <text x="560" y="225" font-size="11" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">IN: 5432 Backend ✓</text>
+      <rect x="506" y="238" width="108" height="22" rx="4" fill="#fee2e2" stroke="#fecaca" stroke-width="0.5"/>
+      <text x="560" y="253" font-size="11" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">IN: everything else ✗</text>
+      <path d="M264 150 L302 112" fill="none" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a4)"/>
+      <text x="286" y="122" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">3000</text>
+      <path d="M264 190 L302 248" fill="none" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a4)"/>
+      <text x="286" y="230" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">8000</text>
+      <line x1="444" y1="258" x2="488" y2="230" stroke="#dc2626" stroke-width="1.5" marker-end="url(#a4)"/>
+      <text x="464" y="237" font-size="10" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">5432</text>
+      <path d="M54 192 L302 268" fill="none" stroke="#dc2626" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#a4)"/>
+      <text x="200" y="256" font-size="10" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">blocked ✗</text>
+    </svg>
+    <p class="dc">Fig 4  Every resource has its own Security Group. Only explicitly defined traffic flows between them.</p>
+  </div>
+  <div class="code">
+    <span class="tag">Security Group rules</span>
+    <span class="g">Nginx SG</span>    <span class="gr">--  IN: 80, 443 from internet (0.0.0.0/0)</span>
+<span class="o">Frontend SG</span> <span class="gr">--  IN: 3000 from Nginx SG ID only</span>
+<span class="o">Backend SG</span>  <span class="gr">--  IN: 8000 from Nginx SG ID + Frontend SG ID</span>
+<span class="r">Database SG</span> <span class="gr">--  IN: 5432 from Backend SG ID only</span>
+
+<span class="gr">Use Security Group IDs for internal resource-to-resource rules.</span>
+<span class="gr">CIDR is for internet traffic and specific IP ranges only.</span></div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section">
+  <div class="section-num">Section 05</div>
+  <h2>Complete production architecture</h2>
+  <p>Now let us see everything working together. Here is the full journey of a user request from browser to database  with every networking concept playing its role.</p>
+  <div class="dw">
+    <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <circle cx="40" cy="34" r="16" fill="#2563eb"/>
+      <text x="40" y="39" font-size="12" font-weight="700" fill="white" text-anchor="middle" font-family="Manrope,sans-serif">1</text>
+      <text x="64" y="30" font-size="12" font-weight="600" fill="#18181b" font-family="Manrope,sans-serif">User visits myapp.com</text>
+      <text x="64" y="46" font-size="11" fill="#71717a" font-family="Manrope,sans-serif">Request resolves to Nginx public IP</text>
+      <line x1="40" y1="52" x2="40" y2="76" stroke="#d4d4d8" stroke-width="1.5" marker-end="url(#a5)"/>
+      <rect x="10" y="78" width="144" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="82" y="99" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Internet Gateway</text>
+      <text x="82" y="116" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">VPC entry point</text>
+      <line x1="154" y1="103" x2="226" y2="103" stroke="#16a34a" stroke-width="1.5" marker-end="url(#a5)"/>
+      <text x="190" y="97" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">port 80</text>
+      <rect x="190" y="64" width="196" height="168" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1" stroke-dasharray="6 3"/>
+      <text x="288" y="84" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle" letter-spacing="0.08em" font-family="Manrope,sans-serif">PUBLIC SUBNET</text>
+      <rect x="210" y="90" width="156" height="66" rx="8" fill="white" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="288" y="112" font-size="14" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Nginx</text>
+      <text x="288" y="130" font-size="11" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">Reverse proxy · 10.0.1.10</text>
+      <text x="288" y="146" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">SG: allows 80/443 from internet</text>
+      <text x="288" y="190" font-size="11" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">/  → Frontend:3000</text>
+      <text x="288" y="206" font-size="11" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">/api/ → Backend:8000</text>
+      <text x="288" y="222" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">User never talks directly to app</text>
+      <rect x="416" y="38" width="196" height="258" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1" stroke-dasharray="6 3"/>
+      <text x="514" y="58" font-size="10" font-weight="700" fill="#c2410c" text-anchor="middle" letter-spacing="0.08em" font-family="Manrope,sans-serif">PRIVATE SUBNET</text>
+      <rect x="434" y="64" width="160" height="72" rx="8" fill="white" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="514" y="86" font-size="14" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Frontend</text>
+      <text x="514" y="104" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Next.js · 10.0.2.10:3000</text>
+      <text x="514" y="120" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">SG: only Nginx SG can reach</text>
+      <text x="514" y="132" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Internet: blocked ✗</text>
+      <rect x="434" y="158" width="160" height="72" rx="8" fill="white" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="514" y="180" font-size="14" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Backend</text>
+      <text x="514" y="198" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Node.js · 10.0.2.20:8000</text>
+      <text x="514" y="214" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">SG: only Nginx SG can reach</text>
+      <text x="514" y="226" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Internet: blocked ✗</text>
+      <line x1="386" y1="118" x2="432" y2="100" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a5)"/>
+      <text x="408" y="103" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">3000</text>
+      <line x1="386" y1="138" x2="432" y2="192" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a5)"/>
+      <text x="408" y="178" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">8000</text>
+      <rect x="416" y="320" width="196" height="86" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1" stroke-dasharray="6 3"/>
+      <text x="514" y="340" font-size="10" font-weight="700" fill="#b91c1c" text-anchor="middle" letter-spacing="0.08em" font-family="Manrope,sans-serif">DB SUBNET</text>
+      <rect x="434" y="348" width="160" height="46" rx="8" fill="white" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="514" y="368" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">PostgreSQL</text>
+      <text x="514" y="385" font-size="10" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.0.3.10:5432 · only Backend SG ✓</text>
+      <line x1="514" y1="230" x2="514" y2="318" stroke="#dc2626" stroke-width="1.5" marker-end="url(#a5)"/>
+      <text x="530" y="278" font-size="10" fill="#dc2626" font-family="Manrope,sans-serif">5432</text>
+      <circle cx="640" cy="103" r="16" fill="#2563eb"/>
+      <text x="640" y="108" font-size="12" font-weight="700" fill="white" text-anchor="middle" font-family="Manrope,sans-serif">2</text>
+      <text x="618" y="95" font-size="10" fill="#52525b" text-anchor="end" font-family="Manrope,sans-serif">Nginx routes</text>
+      <circle cx="640" cy="370" r="16" fill="#2563eb"/>
+      <text x="640" y="375" font-size="12" font-weight="700" fill="white" text-anchor="middle" font-family="Manrope,sans-serif">3</text>
+      <text x="618" y="362" font-size="10" fill="#52525b" text-anchor="end" font-family="Manrope,sans-serif">DB returns data</text>
+    </svg>
+    <p class="dc">Fig 5  The full request journey. Every layer is protected. The internet only ever touches Nginx.</p>
+  </div>
+  <div class="callout good">
+    <span class="label">Why Nginx in front?</span>
+    Without Nginx, your app server's IP would be exposed to the internet. With Nginx, the internet only sees one IP address. Your actual app servers are invisible. Nginx also handles SSL termination, rate limiting, and load distribution.
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section">
+  <div class="section-num">Section 06</div>
+  <h2>VPC Peering  Connecting two VPCs</h2>
+  <p>By default, VPCs are completely isolated from each other  even in the same AWS account. <strong>VPC Peering</strong> creates a direct private connection between two VPCs so their resources can communicate as if on the same network.</p>
+  <div class="callout note">
+    <span class="label">Three steps to set up VPC Peering</span>
+    1. Send a peering request from VPC A to VPC B<br>
+    2. Accept the request in VPC B<br>
+    3. Update route tables in <strong>BOTH</strong> VPCs  without this step traffic will not flow even if the peering exists
+  </div>
+  <div class="dw">
+    <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <text x="155" y="22" font-size="12" font-weight="700" fill="#18181b" text-anchor="middle" font-family="Manrope,sans-serif">2 VPCs  simple ✓</text>
+      <rect x="16" y="36" width="116" height="68" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="74" y="62" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="middle" font-family="Manrope,sans-serif">VPC A</text>
+      <text x="74" y="79" font-size="11" fill="#3b82f6" text-anchor="middle" font-family="Manrope,sans-serif">Production</text>
+      <text x="74" y="95" font-size="10" fill="#3b82f6" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16</text>
+      <rect x="178" y="36" width="116" height="68" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="236" y="62" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">VPC B</text>
+      <text x="236" y="79" font-size="11" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">Development</text>
+      <text x="236" y="95" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">10.1.0.0/16</text>
+      <rect x="132" y="56" width="46" height="28" rx="5" fill="#f0fdf4" stroke="#16a34a" stroke-width="1"/>
+      <text x="155" y="68" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">Peer</text>
+      <text x="155" y="80" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">&#x2194;</text>
+      <rect x="16" y="118" width="278" height="52" rx="7" fill="#f4f4f5" stroke="#d4d4d8" stroke-width="0.5"/>
+      <text x="155" y="138" font-size="11" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Both VPCs must update their route tables</text>
+      <text x="155" y="155" font-size="11" fill="#71717a" text-anchor="middle" font-family="Manrope,sans-serif">VPC A: 10.1.0.0/16 → peering-connection-id</text>
+      <text x="155" y="192" font-size="11" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">IP ranges must not overlap</text>
+      <text x="155" y="210" font-size="11" fill="#71717a" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16 + 10.1.0.0/16  ✓  can peer</text>
+      <text x="155" y="228" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16 + 10.0.0.0/16  ✗  conflict!</text>
+      <line x1="320" y1="10" x2="320" y2="250" stroke="#e4e4e7" stroke-width="1"/>
+      <text x="500" y="22" font-size="12" font-weight="700" fill="#18181b" text-anchor="middle" font-family="Manrope,sans-serif">4 VPCs  6 connections needed ✗</text>
+      <rect x="340" y="36" width="80" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+      <text x="380" y="62" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle" font-family="Manrope,sans-serif">VPC 1</text>
+      <rect x="580" y="36" width="80" height="44" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1"/>
+      <text x="620" y="62" font-size="11" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">VPC 2</text>
+      <rect x="340" y="178" width="80" height="44" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1"/>
+      <text x="380" y="204" font-size="11" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">VPC 3</text>
+      <rect x="580" y="178" width="80" height="44" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1"/>
+      <text x="620" y="204" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">VPC 4</text>
+      <line x1="420" y1="58" x2="580" y2="58" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <line x1="420" y1="66" x2="380" y2="178" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <line x1="420" y1="72" x2="580" y2="186" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <line x1="620" y1="80" x2="620" y2="178" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <line x1="580" y1="200" x2="420" y2="200" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <line x1="580" y1="188" x2="424" y2="76" stroke="#dc2626" stroke-width="1" opacity="0.7" marker-end="url(#a6)"/>
+      <text x="500" y="248" font-size="11" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10 VPCs = 45 connections. Unmanageable.</text>
+    </svg>
+    <p class="dc">Fig 6  VPC Peering works well for 2–3 VPCs. With more, it becomes unmanageable.</p>
+  </div>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section">
+  <div class="section-num">Section 07</div>
+  <h2>Transit Gateway  Networking at scale</h2>
+  <p>Transit Gateway solves the peering problem with a simple idea: instead of connecting every VPC to every other VPC, <strong>all VPCs connect to one central hub</strong>. Think of it as a <em>hub airport</em>  all flights pass through it instead of flying directly city-to-city.</p>
+  <div class="dw">
+    <svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <circle cx="340" cy="155" r="56" fill="#f0fdf4" stroke="#0d9488" stroke-width="2"/>
+      <text x="340" y="148" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" font-family="Manrope,sans-serif">Transit</text>
+      <text x="340" y="166" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" font-family="Manrope,sans-serif">Gateway</text>
+      <rect x="90" y="26" width="110" height="52" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="145" y="50" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle" font-family="Manrope,sans-serif">Production</text>
+      <text x="145" y="67" font-size="10" fill="#3b82f6" text-anchor="middle" font-family="Manrope,sans-serif">10.0.0.0/16</text>
+      <rect x="480" y="26" width="110" height="52" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="535" y="50" font-size="12" font-weight="700" fill="#c2410c" text-anchor="middle" font-family="Manrope,sans-serif">Development</text>
+      <text x="535" y="67" font-size="10" fill="#ea580c" text-anchor="middle" font-family="Manrope,sans-serif">10.1.0.0/16</text>
+      <rect x="480" y="232" width="110" height="52" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="535" y="256" font-size="12" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="Manrope,sans-serif">Data Science</text>
+      <text x="535" y="273" font-size="10" fill="#dc2626" text-anchor="middle" font-family="Manrope,sans-serif">10.2.0.0/16</text>
+      <rect x="90" y="232" width="110" height="52" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="145" y="256" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle" font-family="Manrope,sans-serif">HR Systems</text>
+      <text x="145" y="273" font-size="10" fill="#16a34a" text-anchor="middle" font-family="Manrope,sans-serif">10.3.0.0/16</text>
+      <rect x="18" y="130" width="100" height="52" rx="8" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="68" y="154" font-size="11" font-weight="700" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">On-premise</text>
+      <text x="68" y="170" font-size="10" fill="#a1a1aa" text-anchor="middle" font-family="Manrope,sans-serif">Office · via VPN</text>
+      <line x1="200" y1="52" x2="295" y2="118" stroke="#0d9488" stroke-width="1.5" marker-end="url(#a7)"/>
+      <line x1="480" y1="52" x2="385" y2="118" stroke="#0d9488" stroke-width="1.5" marker-end="url(#a7)"/>
+      <line x1="480" y1="258" x2="385" y2="195" stroke="#0d9488" stroke-width="1.5" marker-end="url(#a7)"/>
+      <line x1="200" y1="258" x2="295" y2="195" stroke="#0d9488" stroke-width="1.5" marker-end="url(#a7)"/>
+      <line x1="118" y1="155" x2="284" y2="155" stroke="#a1a1aa" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#a7)"/>
+      <text x="340" y="292" font-size="12" font-weight="700" fill="#0f766e" text-anchor="middle" font-family="Manrope,sans-serif">4 VPCs + on-premise = 5 clean attachments ✓</text>
+      <text x="340" y="308" font-size="11" fill="#52525b" text-anchor="middle" font-family="Manrope,sans-serif">Scales to hundreds of VPCs. Centrally managed.</text>
+    </svg>
+    <p class="dc">Fig 7  Transit Gateway replaces a tangled mesh with a clean hub-and-spoke. One attachment per VPC.</p>
+  </div>
+  <table class="ctable">
+    <thead><tr><th>Feature</th><th>VPC Peering</th><th>Transit Gateway</th></tr></thead>
+    <tbody>
+      <tr><td class="concept">Best for</td><td>2–3 VPCs</td><td>4+ VPCs</td></tr>
+      <tr><td class="concept">Connections needed</td><td>N×(N-1)/2</td><td>N (one per VPC)</td></tr>
+      <tr><td class="concept">On-premise support</td><td>Not supported ✗</td><td>VPN / Direct Connect ✓</td></tr>
+      <tr><td class="concept">Cost</td><td>Lower</td><td>Higher (per attachment)</td></tr>
+      <tr><td class="concept">Management</td><td>Complex at scale</td><td>Centralised</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section">
+  <div class="section-num">Section 08</div>
+  <h2>Same concept, different cloud</h2>
+  <p>Every concept in this article exists in Azure and GCP under a different name. Once you understand the pattern in AWS, mapping it takes minutes.</p>
+  <table class="ctable">
+    <thead><tr><th>Concept</th><th>AWS</th><th>Azure</th><th>GCP</th></tr></thead>
+    <tbody>
+      <tr><td class="concept">Private network</td><td><span class="pill aws">VPC</span></td><td><span class="pill azure">Virtual Network (VNet)</span></td><td><span class="pill gcp">VPC</span></td></tr>
+      <tr><td class="concept">Subnet</td><td><span class="pill aws">Subnet</span></td><td><span class="pill azure">Subnet</span></td><td><span class="pill gcp">Subnetwork</span></td></tr>
+      <tr><td class="concept">Firewall rules</td><td><span class="pill aws">Security Group</span></td><td><span class="pill azure">NSG</span></td><td><span class="pill gcp">Firewall Rules</span></td></tr>
+      <tr><td class="concept">Internet access</td><td><span class="pill aws">Internet Gateway</span></td><td><span class="pill azure">Azure Internet Gateway</span></td><td><span class="pill gcp">Cloud Router + NAT</span></td></tr>
+      <tr><td class="concept">Traffic routing</td><td><span class="pill aws">Route Table</span></td><td><span class="pill azure">UDR</span></td><td><span class="pill gcp">Routes</span></td></tr>
+      <tr><td class="concept">Network peering</td><td><span class="pill aws">VPC Peering</span></td><td><span class="pill azure">VNet Peering</span></td><td><span class="pill gcp">VPC Network Peering</span></td></tr>
+      <tr><td class="concept">Hub routing</td><td><span class="pill aws">Transit Gateway</span></td><td><span class="pill azure">Virtual WAN</span></td><td><span class="pill gcp">Network Connectivity Center</span></td></tr>
+      <tr><td class="concept">Native IaC</td><td><span class="pill aws">CloudFormation / CDK</span></td><td><span class="pill azure">ARM / Bicep</span></td><td><span class="pill gcp">Deployment Manager</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout good">
+    <span class="label">Why Terraform beats all three</span>
+    Terraform uses the same HCL language and workflow for AWS, Azure, and GCP. Learn it once, deploy anywhere. That is why it is the industry standard for infrastructure-as-code regardless of cloud provider.
+  </div>
+</div>
+
+<hr>
+
+<div class="summary">
+  <h3>Key takeaways</h3>
+  <div class="summary-row"><div class="snum">1</div><div><strong>VPC</strong> is your isolated private network. Never use the AWS default VPC in production  always build a custom one.</div></div>
+  <div class="summary-row"><div class="snum">2</div><div><strong>Subnets</strong> are IP ranges inside your VPC. Public vs private is decided by the Route Table  not a checkbox.</div></div>
+  <div class="summary-row"><div class="snum">3</div><div><strong>Internet Gateway + Route Table</strong> is the combination that gives a subnet internet access. Both are required.</div></div>
+  <div class="summary-row"><div class="snum">4</div><div><strong>Security Groups</strong> are per-resource whitelists. Private subnet blocks the internet. Security Group blocks internal VPC threats. You need both.</div></div>
+  <div class="summary-row"><div class="snum">5</div><div><strong>Nginx as reverse proxy</strong> means the internet only ever sees one IP. Your actual application servers are completely hidden behind it.</div></div>
+  <div class="summary-row"><div class="snum">6</div><div><strong>VPC Peering</strong> for 2–3 VPCs. <strong>Transit Gateway</strong> for anything larger or when you need to connect an on-premise office network.</div></div>
+</div>
+
+<div class="footer-tags">
+  <span class="ftag">AWS</span><span class="ftag">Cloud Networking</span><span class="ftag">VPC</span>
+  <span class="ftag">Security Groups</span><span class="ftag">Terraform</span><span class="ftag">Infrastructure</span>
+  <span class="ftag">DevOps</span><span class="ftag">Cloud Engineering</span><span class="ftag">MLOps</span>
+  <span class="ftag">Learning in Public</span>
+</div>
+
+</div>
+</body>
+</html>
